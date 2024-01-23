@@ -63,9 +63,9 @@ def get_openai_model_response(
     n_choices=1,
     max_new_tokens=500
 ):
-    global openai_client
-    if not openai_client:
-        openai_client = openai.OpenAI()
+    # global openai_client
+    # if not openai_client:
+    #     openai_client = openai.OpenAI()
     
     if not prompt or len(prompt) == 0:
         return None
@@ -81,6 +81,10 @@ def get_openai_model_response(
                 messages = prompt
             else:
                 return None
+
+            openai.api_type = "azure"
+            openai.api_base = "https://els-sdanswers-innovation.openai.azure.com/"
+            openai.api_version = "2023-07-01-preview"
 
             res_choices = openai_client.chat.completions.create(
                     model=model,

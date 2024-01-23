@@ -31,6 +31,10 @@ def strict_agg(results):
     for result in results:
         if result == "Contradiction":
             return "Contradiction"
+    # UPDATE STRICT AGGREGATOR
+    # before it used to return the first non-entailment results
+    # so either neutral or contradiction, depending on which was encountered first
+    for result in results:
         if result == "Neutral":
             return "Neutral"
     return "Entailment"

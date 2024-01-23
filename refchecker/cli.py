@@ -92,9 +92,13 @@ def get_args():
 def main():
     args = get_args()
     # set environment variables
+    os.environ["AZURE_OPENAI_ENDPOINT"] = "https://els-sdanswers-innovation.openai.azure.com/"
+
     if args.openai_key:
         with open(args.openai_key, "r") as fp:
             os.environ["OPENAI_API_KEY"] = fp.read().strip()
+            os.environ["AZURE_OPENAI_API_KEY"] = fp.read().strip()
+
     if args.anthropic_key:
         with open(args.anthropic_key, "r") as fp:
             os.environ["ANTHROPIC_API_KEY"] = fp.read().strip()
