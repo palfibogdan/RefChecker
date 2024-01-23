@@ -1,3 +1,14 @@
 *.DS_Store
 __pycache__/
 *.ckpt
+refchecker/.idea/inspectionProfiles/profiles_settings.xml
+refchecker/.idea/misc.xml
+refchecker/.idea/modules.xml
+refchecker/.idea/refchecker.iml
+refchecker/.idea/vcs.xml
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/misc.xml
+.idea/modules.xml
+.idea/refchecker.iml
+.idea/vcs.xml
+.idea/workspace.xml
