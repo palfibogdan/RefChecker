@@ -36,16 +36,22 @@ class CheckerBase:
         reference: Union[str, List], 
         response: str = None,
         question: str = None,
-        max_reference_segment_length: int = 200, 
+        max_reference_segment_length: int = 200,
+        data_name: str = None
     ):
         ret = []
         if isinstance(reference, str):
             reference = [reference]
         for psg in reference:
-            if max_reference_segment_length > 0:
-                segments = split_text(psg, max_reference_segment_length)
-            else:
-                segments = [psg]
+            #TODO: changed this to stop splitting the reference
+
+            # if max_reference_segment_length > 0:
+            #     segments = split_text(psg, max_reference_segment_length)
+            # else:
+            #     segments = [psg]
+
+            segments = [psg]
+
             psg_ret = self._check(
                 claims=[claim] * len(segments),
                 references=segments,

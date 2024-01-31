@@ -85,8 +85,9 @@ def get_openai_model_response(
             openai.api_type = "azure"
             openai.api_base = "https://els-sdanswers-innovation.openai.azure.com/"
             openai.api_version = "2023-07-01-preview"
+            openai.api_key = os.environ.get('OPENAI_API_KEY')
 
-            res_choices = openai_client.chat.completions.create(
+            res_choices = openai.chat.completions.create(
                     model=model,
                     messages=messages,
                     temperature=temperature,
@@ -101,6 +102,11 @@ def get_openai_model_response(
             if response and len(response) > 0:
                 return response
         except Exception as e:
+            print(type(e), e)
+            # if error is BadRequestError, return the response "Azure OpenAI's content management policy does not allow this content to be returned."
+            if isinstance(e, openai.BadRequestError):
+                return "Azure OpenAI's content management policy does not allow this content to be returned."
+
             if isinstance(e, OpenAIRateLimitError) or isinstance(e, OpenAIAPIError) or isinstance(e, OpenAITimeout):
                 time.sleep(10)
                 continue

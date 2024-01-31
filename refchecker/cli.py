@@ -3,10 +3,10 @@ import json
 from argparse import ArgumentParser, RawTextHelpFormatter
 from tqdm import tqdm
 
-from .extractor import Claude2Extractor, GPT4Extractor, MixtralExtractor
-from .checker import Claude2Checker, GPT4Checker, NLIChecker, AlignScoreChecker
-from .retriever import GoogleRetriever
-from .aggregator import strict_agg, soft_agg, major_agg
+from refchecker.extractor import Claude2Extractor, GPT4Extractor, MixtralExtractor
+from refchecker.checker import Claude2Checker, GPT4Checker, NLIChecker, AlignScoreChecker
+from refchecker.retriever import GoogleRetriever
+from refchecker.aggregator import strict_agg, soft_agg, major_agg
 
 
 def get_args():
@@ -140,16 +140,37 @@ def extract(args):
     # extract triplets
     print('Extracting')
     output_data = []
-    for item in tqdm(input_data):
+
+    existing_triplets = []
+    existing_output = None
+    if os.path.exists(args.output_path):
+        with open(args.output_path, "r") as fp:
+            existing_output = json.load(fp)
+            existing_triplets = [t["response"] for t in existing_output]
+
+    for idx, item in enumerate(tqdm(input_data)):
         assert "response" in item, "response field is required"
         response = item["response"]
+        if response in existing_triplets:
+            continue
+
         question = item.get("question", None)
         triplets = extractor.extract_claim_triplets(response, question, max_new_tokens=args.extractor_max_new_tokens)
         out_item = {**item, **{"triplets": triplets}}
         output_data.append(out_item)
-    with open(args.output_path, "w") as fp:
-        json.dump(output_data, fp, indent=2)
 
+        if idx % 100 == 0:
+            with open(args.output_path, "w") as fp:
+                out = output_data
+                if existing_output is not None:
+                    out = existing_output + output_data
+                json.dump(out, fp, indent=2)
+
+    with open(args.output_path, "w") as fp:
+        out = output_data
+        if existing_output is not None:
+            out = existing_output + output_data
+        json.dump(out, fp, indent=2)
 
 def check(args):
     # initialize models
@@ -183,12 +204,25 @@ def check(args):
     # load data
     with open(args.input_path, "r") as fp:
         input_data = json.load(fp)
+
+    existing_output = None
+    existing_responses = []
+    if os.path.exists(args.output_path):
+        with open(args.output_path, "r") as fp:
+            existing_output = json.load(fp)
+            existing_responses = [t["response"] for t in existing_output]
     
     # check triplets
     print('Checking')
     output_data = []
-    for item in tqdm(input_data):
+    for idx, item in enumerate(tqdm(input_data)):
         assert "triplets" in item, "triplets field is required"
+
+        response = item["response"]
+        if response in existing_responses:
+            print(idx, "skipped")
+            continue
+
         triplets = item["triplets"]
         if args.use_retrieval:
             reference = retriever.retrieve(item["response"])
@@ -211,8 +245,18 @@ def check(args):
             }
         }
         output_data.append(out_item)
+        if idx % 20 == 0:
+            with open(args.output_path, "w") as fp:
+                out = output_data
+                if existing_output is not None:
+                    out = existing_output + output_data
+                json.dump(out, fp, indent=2)
+
     with open(args.output_path, "w") as fp:
-        json.dump(output_data, fp, indent=2)
+        out = output_data
+        if existing_output is not None:
+            out = existing_output + output_data
+        json.dump(out, fp, indent=2)
 
 
 if __name__ == "__main__":
