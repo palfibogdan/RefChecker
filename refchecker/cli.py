@@ -1,10 +1,11 @@
 import os
+os.environ["HF_HOME"] = "/nlp/cache/huggingface/"
 import json
 from argparse import ArgumentParser, RawTextHelpFormatter
 from tqdm import tqdm
 
 from refchecker.extractor import Claude2Extractor, GPT4Extractor, MixtralExtractor
-from refchecker.checker import Claude2Checker, GPT4Checker, NLIChecker, AlignScoreChecker
+from refchecker.checker import Claude2Checker, GPT4Checker, NLIChecker, AlignScoreChecker, ZephyrChecker
 from refchecker.retriever import GoogleRetriever
 from refchecker.aggregator import strict_agg, soft_agg, major_agg
 
@@ -40,7 +41,7 @@ def get_args():
     )
     parser.add_argument(
         "--checker_name", type=str, default="claude2",
-        choices=["gpt4", "claude2", "nli", "alignscore"],
+        choices=["gpt4", "claude2", "nli", "alignscore", "zephyr"],
         help="Model used for checking whether the triplets are factual. "
         "Default: claude2."
     )
@@ -182,6 +183,8 @@ def check(args):
         checker = NLIChecker()
     elif args.checker_name == "alignscore":
         checker = AlignScoreChecker()
+    elif args.checker_name == "zephyr":
+        checker = ZephyrChecker()
     else:
         raise NotImplementedError
     
